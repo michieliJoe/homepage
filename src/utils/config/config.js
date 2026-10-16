@@ -3,6 +3,7 @@ import { join } from "path";
 
 import cache from "memory-cache";
 
+import { loadTabConfigs } from "utils/config/tabs";
 import { loadYaml } from "utils/config/yaml";
 
 const cacheKey = "homepageEnvironmentVariables";
@@ -98,6 +99,28 @@ export function getSettings() {
         const name = Object.keys(i)[0];
         initialSettings.layout[name] = i[name];
       });
+    }
+  }
+  const tabs = loadTabConfigs(CONF_DIR, substituteEnvironmentVars);
+  if (tabs.length) {
+    initialSettings.layout ??= {};
+    initialSettings.tabAbbreviations = {
+      ...initialSettings.tabAbbreviations,
+      ...Object.fromEntries(tabs.filter((tab) => tab.abbreviation).map((tab) => [tab.name, tab.abbreviation])),
+    };
+    initialSettings.tabColors = {
+      ...initialSettings.tabColors,
+      ...Object.fromEntries(tabs.filter((tab) => tab.tabColor).map((tab) => [tab.name, tab.tabColor])),
+    };
+    initialSettings.tabIcons = {
+      ...initialSettings.tabIcons,
+      ...Object.fromEntries(tabs.filter((tab) => tab.icon).map((tab) => [tab.name, tab.icon])),
+    };
+    for (const tab of tabs) {
+      for (const [name, layout] of Object.entries(tab.layout)) {
+        if (Object.hasOwn(initialSettings.layout, name)) throw new Error(`Duplicate layout group: ${name}`);
+        initialSettings.layout[name] = layout;
+      }
     }
   }
   return initialSettings;

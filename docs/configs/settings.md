@@ -5,6 +5,90 @@ description: Service Configuration
 
 The `settings.yaml` file allows you to define application level options. For changes made to this file to take effect, you will need to regenerate the static HTML, this can be done by clicking the refresh icon in the bottom right of the page.
 
+## Per-Tab Configuration
+
+An optional `abbreviation: nv` in a tab's settings adds a case-insensitive keyword
+to dashboard quick search without changing its visible name. For example,
+Northview links can be found with `nv prod`. The abbreviation is included for
+service, bookmark, and configured widget link results. Omit it to search by the
+full tab name as before.
+
+Each tab directory also supports an optional `tabColor: "#176349"` in its
+settings file. Use a quoted six-digit hex color to set that button's background
+only while the tab is active. Inactive tabs keep their default styling, including
+on hover. Active tab text automatically contrasts in black or
+white, and the selected underline remains visible. Omit the property to keep
+existing tab styling. Button colors are independent of `cardColor`.
+
+Tabs can keep their configuration in separate directories under `config/tabs/`:
+
+```text
+config/
+  settings.yaml
+  services.yaml
+  bookmarks.yaml
+  tabs/
+    slc/
+      settings.yaml
+      services.yaml
+      bookmarks.yaml
+    northview/
+      settings.yaml
+      services.yaml
+      bookmarks.yaml
+```
+
+Global options such as title, theme, and widgets remain in the top-level configuration.
+Each tab's `settings.yaml` supports `name`, `order`, `icon`, `cardColor`, and `layout`:
+
+```yaml
+name: SLC
+order: 1
+icon: /images/slc-logo.png
+cardColor: "#e8f2ed"
+layout:
+  Environments:
+    style: row
+    columns: 3
+    initiallyCollapsed: false
+  Quick Links:
+    style: columns
+```
+
+  The optional `cardColor` sets the background of every service and bookmark card
+  under the tab, including nested sections and hover states. Use a quoted hex color
+  (`#RGB`, `#RGBA`, `#RRGGBB`, or `#RRGGBBAA`). Omitting it preserves existing card
+  backgrounds. Text and widget metric colors are unchanged, so choose a background
+  with appropriate contrast for your theme.
+
+  The optional `icon` displays a 24px image or icon beside the tab name. It supports
+  HTTPS image URLs, local paths under `/images/`, and the same named icons as service
+  cards (for example, `mdi-domain`, `si-github`, or `sh-grafana`). Images retain their
+  aspect ratio within a 24px square; omit `icon` for a text-only tab.
+
+  For local logos, mount a directory containing the files into `/app/public/images`
+  (for example, `./images:/app/public/images:ro`) and use `/images/filename.png`.
+  Do not mount the entire `/app/public` directory. Restart the container when adding
+  new image files. Existing top-level tab layouts can instead configure a `tabIcons`
+  mapping in the global settings file, keyed by the exact tab name.
+
+Use the normal services and bookmarks formats in that tab's files, with section names
+matching its local layout. Section names may repeat across tabs: the loader assigns
+unique internal keys based on the directory and section path, automatically sets the
+tab, and uses the original section name as its `displayName`. Explicit `displayName`
+values remain supported. Nested service sections are qualified in the same way.
+Explicit service `id` values are preserved and must still be unique across the dashboard.
+
+All three files are optional. The directory name is the default tab name, and the
+default order is `0`; tabs sort by order, then name. Tab names must be distinct even
+after converting spaces to hyphens and lowercasing for URL fragments. Environment
+and secret-file placeholders work in tab files just as they do in top-level files.
+
+Existing top-level layouts, services, and bookmarks remain supported and are loaded
+before tab-local content. Leave top-level services and bookmarks as `[]` when all
+content has moved into tabs. Tab-file edits, additions, and removals are included in
+the configuration refresh hash; use the dashboard refresh control to regenerate.
+
 ## Title
 
 You can customize the title of the page if you'd like.
@@ -249,6 +333,36 @@ layout:
 ```
 
 ### Headers
+
+#### Group Display Names
+
+Set `displayName` on a layout group to customize its heading without changing its
+identifier. This supports matching section headings on different tabs. Group keys
+must remain unique and match the keys in `services.yaml` or `bookmarks.yaml`.
+Service groups, nested service groups, and bookmark groups support this option.
+When omitted, the heading continues to use the group key.
+
+```yaml
+layout:
+  slc-environments:
+    tab: SLC
+    displayName: Environments
+    style: row
+    columns: 3
+  meridian-environments:
+    tab: Meridian
+    displayName: Environments
+    style: row
+    columns: 3
+```
+
+In `services.yaml`, define the links separately under `slc-environments` and
+`meridian-environments`. Both headings will display "Environments", while layout
+lookups and widget requests continue to use their original identifiers.
+
+Custom integrations should use `displayName` for presentation only, retaining the
+group key for identity. This option does not change individual service names or
+Quick Launch matching.
 
 You can hide headers for each section in the layout as well by passing `header` as false, like so:
 

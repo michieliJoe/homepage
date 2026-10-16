@@ -24,6 +24,8 @@ export default function BookmarksGroup({
   return (
     <div
       key={bookmarks.name}
+      data-card-color={layout?.cardColor ? "true" : undefined}
+      style={layout?.cardColor ? { "--tab-card-color": layout.cardColor } : undefined}
       className={classNames(
         "bookmark-group flex-1 overflow-hidden",
         layout?.style === "row" ? "basis-full" : "basis-full md:basis-1/4 lg:basis-1/5 xl:basis-1/6",
@@ -44,7 +46,7 @@ export default function BookmarksGroup({
                   </div>
                 )}
                 <h2 className="text-theme-800 dark:text-theme-300 text-xl font-medium bookmark-group-name">
-                  {bookmarks.name}
+                  {layout?.displayName ?? bookmarks.name}
                 </h2>
                 <MdKeyboardArrowDown
                   className={classNames(

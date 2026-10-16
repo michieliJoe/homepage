@@ -9,6 +9,7 @@ import {
   servicesFromDocker,
   servicesFromKubernetes,
 } from "utils/config/service-helpers";
+import { loadTabConfigs } from "utils/config/tabs";
 import { cleanWidgetGroups, widgetsFromConfig } from "utils/config/widget-helpers";
 import { loadYaml } from "utils/config/yaml";
 
@@ -29,9 +30,10 @@ export async function bookmarksResponse() {
   const bookmarksYaml = path.join(CONF_DIR, "bookmarks.yaml");
   const rawFileContents = await fs.readFile(bookmarksYaml, "utf8");
   const fileContents = substituteEnvironmentVars(rawFileContents);
-  const bookmarks = loadYaml(fileContents);
+  const tabs = loadTabConfigs(CONF_DIR, substituteEnvironmentVars);
+  const bookmarks = [...(loadYaml(fileContents) ?? []), ...tabs.flatMap((tab) => tab.bookmarks)];
 
-  if (!bookmarks) return [];
+  if (!bookmarks.length) return [];
 
   let initialSettings;
 

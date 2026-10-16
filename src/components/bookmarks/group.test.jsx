@@ -54,6 +54,22 @@ vi.mock("components/resolvedicon", () => ({
 import BookmarksGroup from "./group";
 
 describe("components/bookmarks/group", () => {
+  it("sets an inherited card color only when configured", () => {
+    const { container, rerender } = render(
+      <BookmarksGroup bookmarks={{ name: "Links", bookmarks: [] }} layout={{ cardColor: "#e8f2ed" }} />,
+    );
+    expect(container.firstChild.style.getPropertyValue("--tab-card-color")).toBe("#e8f2ed");
+    expect(container.firstChild).toHaveAttribute("data-card-color", "true");
+    rerender(<BookmarksGroup bookmarks={{ name: "Links", bookmarks: [] }} layout={{}} />);
+    expect(container.firstChild.style.getPropertyValue("--tab-card-color")).toBe("");
+    expect(container.firstChild).not.toHaveAttribute("data-card-color");
+  });
+  it("uses the configured display name for the heading", () => {
+    render(<BookmarksGroup bookmarks={{ name: "slc-links", bookmarks: [] }} layout={{ displayName: "Quick Links" }} />);
+    expect(screen.getByRole("heading", { name: "Quick Links" })).toBeInTheDocument();
+    expect(screen.queryByText("slc-links")).not.toBeInTheDocument();
+  });
+
   it("renders the group header and list", () => {
     render(
       <BookmarksGroup

@@ -7,7 +7,12 @@ import { BlockHighlightContext } from "./highlight-context";
 import { SettingsContext } from "utils/contexts/settings";
 import { evaluateHighlight, getHighlightClass } from "utils/highlights";
 
-export default function Block({ value, highlightValue, label, field }) {
+function blockLinkProps(href) {
+  if (typeof href !== "string" || !/^(https?:\/\/|\/(?!\/)|#)/i.test(href)) return {};
+  return { href, target: "_blank", rel: "noopener noreferrer" };
+}
+
+export default function Block({ value, highlightValue, label, field, href }) {
   const { t } = useTranslation();
   const highlightConfig = useContext(BlockHighlightContext);
   const { settings } = useContext(SettingsContext);
@@ -36,9 +41,12 @@ export default function Block({ value, highlightValue, label, field }) {
   }, [highlight, highlightConfig]);
 
   const applyToValueOnly = highlight?.valueOnly === true;
+  const linkProps = blockLinkProps(href);
+  const Element = linkProps.href ? "a" : "div";
 
   return (
-    <div
+    <Element
+      {...linkProps}
       className={classNames(
         "bg-theme-200/50 dark:bg-theme-900/20 rounded-sm m-1 flex-1 flex flex-col items-center justify-center text-center p-1",
         value === undefined ? "animate-pulse" : "",
@@ -65,6 +73,6 @@ export default function Block({ value, highlightValue, label, field }) {
       >
         {t(label)}
       </div>
-    </div>
+    </Element>
   );
 }

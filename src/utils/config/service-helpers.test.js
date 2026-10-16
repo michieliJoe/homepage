@@ -73,6 +73,7 @@ vi.mock("fs", () => ({
 vi.mock("utils/config/yaml", () => ({ loadYaml: yaml.load }));
 
 vi.mock("utils/config/config", () => config);
+vi.mock("utils/config/tabs", () => ({ loadTabConfigs: vi.fn(() => []) }));
 vi.mock("dockerode", () => ({ default: Docker }));
 vi.mock("utils/config/docker", () => dockerCfg);
 vi.mock("utils/config/kubernetes", () => kubeCfg);
@@ -483,6 +484,46 @@ describe("utils/config/service-helpers", () => {
     );
     expect(widgets.find((w) => w.type === "jellystat")).toEqual(expect.objectContaining({ days: 7 }));
     expect(widgets.find((w) => w.type === "lubelogger")).toEqual(expect.objectContaining({ vehicleID: 12 }));
+  });
+
+  it("cleanServiceGroups preserves static link labels and destinations", async () => {
+    const { cleanServiceGroups } = await import("./service-helpers");
+    const groups = cleanServiceGroups([
+      {
+        name: "Sites",
+        groups: [],
+        services: [{ name: "PROD", widgets: [{ type: "link", label: "Dashboard", href: "/dashboard", key: "private" }] }],
+      },
+    ]);
+    expect(groups[0].services[0].widgets[0]).toMatchObject({ type: "link", label: "Dashboard", href: "/dashboard" });
+    expect(groups[0].services[0].widgets[0]).not.toHaveProperty("key");
+  });
+
+  it("cleanServiceGroups preserves Custom API click destinations without exposing API URLs", async () => {
+    const { cleanServiceGroups } = await import("./service-helpers");
+    const groups = cleanServiceGroups([
+      {
+        name: "Sites",
+        groups: [],
+        services: [
+          {
+            name: "PROD",
+            widgets: [
+              {
+                type: "customapi",
+                url: "https://api.example.com/private",
+                href: "https://example.com",
+                mappings: [{ label: "Status", field: "status", url: "/health" }],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+    const widget = groups[0].services[0].widgets[0];
+    expect(widget.href).toBe("https://example.com");
+    expect(widget.mappings[0].url).toBe("/health");
+    expect(widget).not.toHaveProperty("url");
   });
 
   it("cleanServiceGroups removes calendar integration urls from frontend widget payload", async () => {

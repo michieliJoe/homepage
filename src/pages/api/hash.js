@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 import checkAndCopyConfig, { CONF_DIR } from "utils/config/config";
+import { getTabConfigFiles } from "utils/config/tabs";
 
 const configs = [
   "docker.yaml",
@@ -25,6 +26,9 @@ export default async function handler(req, res) {
     checkAndCopyConfig(config);
     const configYaml = join(CONF_DIR, config);
     return hash(readFileSync(configYaml, "utf8"));
+  });
+  getTabConfigFiles(CONF_DIR).forEach((file) => {
+    hashes.push(hash(file + readFileSync(file, "utf8")));
   });
 
   // set to date by docker entrypoint, will force revalidation between restarts/recreates

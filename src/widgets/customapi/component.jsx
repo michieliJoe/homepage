@@ -61,7 +61,7 @@ export default function Component({ service }) {
         return (
           <Container service={service}>
             {mappings.slice(0, 4).map((item) => (
-              <Block label={item.label} key={item.label} />
+              <Block label={item.label} key={item.label} href={item.url ?? widget.href} />
             ))}
           </Container>
         );
@@ -170,6 +170,7 @@ export default function Component({ service }) {
             <Block
               label={mapping.label}
               key={mapping.label}
+              href={mapping.url ?? widget.href}
               value={formatValue(t, mapping, getValue(mapping.field, customData))}
             />
           ))}

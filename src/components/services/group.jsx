@@ -29,6 +29,8 @@ export default function ServicesGroup({
   return (
     <div
       key={group.name}
+      data-card-color={layout?.cardColor ? "true" : undefined}
+      style={layout?.cardColor ? { "--tab-card-color": layout.cardColor } : undefined}
       className={classNames(
         "services-group flex-1",
         layout?.style === "row" ? "basis-full" : "basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4",
@@ -48,7 +50,7 @@ export default function ServicesGroup({
                   </div>
                 )}
                 <h2 className="flex text-theme-800 dark:text-theme-300 text-xl font-medium service-group-name">
-                  {group.name}
+                  {layout?.displayName ?? group.name}
                 </h2>
                 <MdKeyboardArrowDown
                   className={classNames(

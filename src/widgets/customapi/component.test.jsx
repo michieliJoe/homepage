@@ -15,6 +15,34 @@ describe("widgets/customapi/component", () => {
     vi.clearAllMocks();
   });
 
+  it.each([undefined, { status: 200 }])("links blocks using mapping URLs while data is %j", (data) => {
+    useWidgetAPI.mockReturnValue({ data, error: undefined });
+    renderWithProviders(
+      <Component
+        service={{
+          widget: {
+            type: "customapi",
+            url: "https://api.example.com/check",
+            href: "https://example.com/default",
+            mappings: [
+              { field: "status", label: "Homepage", url: "https://example.com/home" },
+              { field: "status", label: "Default" },
+              { field: "status", label: "Unsafe", url: "javascript:alert(1)" },
+            ],
+          },
+        }}
+      />,
+    );
+    const link = screen.getByRole("link", { name: /Homepage/ });
+    expect(link).toHaveAttribute("href", "https://example.com/home");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(link).toHaveClass("service-block");
+    expect(screen.getByRole("link", { name: /Default/ })).toHaveAttribute("href", "https://example.com/default");
+    expect(screen.queryByRole("link", { name: /Unsafe/ })).toBeNull();
+    expect(useWidgetAPI.mock.calls[0][0].url).toBe("https://api.example.com/check");
+  });
+
   it("renders placeholder blocks for the first 4 mappings while loading (block display)", () => {
     useWidgetAPI.mockReturnValue({ data: undefined, error: undefined });
 

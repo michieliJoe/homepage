@@ -7,6 +7,7 @@ import checkAndCopyConfig, { CONF_DIR, getSettings, substituteEnvironmentVars } 
 import getDockerArguments from "utils/config/docker";
 import { getKubeConfig } from "utils/config/kubernetes";
 import * as shvl from "utils/config/shvl";
+import { loadTabConfigs } from "utils/config/tabs";
 import { loadYaml } from "utils/config/yaml";
 import kubernetes from "utils/kubernetes/export";
 import createLogger from "utils/logger";
@@ -56,7 +57,8 @@ export async function servicesFromConfig() {
   const servicesYaml = path.join(CONF_DIR, "services.yaml");
   const rawFileContents = await fs.readFile(servicesYaml, "utf8");
   const fileContents = substituteEnvironmentVars(rawFileContents);
-  const services = loadYaml(fileContents);
+  const tabs = loadTabConfigs(CONF_DIR, substituteEnvironmentVars);
+  const services = [...(loadYaml(fileContents) ?? []), ...tabs.flatMap((tab) => tab.services)];
   return parseServicesToGroups(services);
 }
 
@@ -323,6 +325,8 @@ export function cleanServiceGroups(groups) {
           limit24h,
 
           // customapi
+          href,
+          label,
           mappings,
           display,
 
@@ -659,7 +663,13 @@ export function cleanServiceGroups(groups) {
         if (type === "openwrt") {
           if (interfaceName) widget.interfaceName = interfaceName;
         }
+        if (type === "link") {
+          widget.href = href;
+          widget.label = label;
+        }
+
         if (type === "customapi") {
+          if (href) widget.href = href;
           if (mappings) widget.mappings = mappings;
           if (display) widget.display = display;
           if (refreshInterval) widget.refreshInterval = refreshInterval;

@@ -334,7 +334,7 @@ function Home({ initialSettings }) {
               role="tablist"
             >
               {tabs.map((tab) => (
-                <Tab key={tab} tab={tab} />
+                <Tab key={tab} tab={tab} icon={settings.tabIcons?.[tab]} color={settings.tabColors?.[tab]} />
               ))}
             </ul>
           </div>
@@ -402,6 +402,8 @@ function Home({ initialSettings }) {
     services,
     bookmarks,
     settings.layout,
+    settings.tabIcons,
+    settings.tabColors,
     settings.fiveColumns,
     settings.maxGroupColumns,
     settings.maxBookmarkGroupColumns,

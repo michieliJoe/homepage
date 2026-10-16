@@ -59,6 +59,28 @@ widget:
 
 Supported formats for the values are `text`, `number`, `float`, `percent`, `duration`, `bytes`, `bitrate`, `size`, `date` and `relativeDate`.
 
+## Block Links
+
+For the default block display, add `url` to a mapping to make that metric block
+clickable. The widget's existing `url` remains the API endpoint; it is not the
+click destination. An optional widget-level `href` supplies a default destination
+for mappings without their own `url`.
+
+```yaml
+widget:
+  type: customapi
+  url: https://updown.io/api/checks/your-check
+  mappings:
+    - field: last_status
+      label: Homepage
+      url: https://your-site.example.com/
+```
+
+Links work during loading and after data arrives, open in a new tab, and support
+HTTP(S), root-relative paths, and fragment URLs. Without a destination, blocks
+remain non-clickable. List and dynamic-list displays are unchanged; dynamic-list
+continues to use its existing `mappings.target` link templates.
+
 The `dateStyle` and `timeStyle` options of the `date` format are passed directly to [Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat) and the `style` and `numeric` options of `relativeDate` are passed to [Intl.RelativeTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/RelativeTimeFormat/RelativeTimeFormat).
 
 The `duration` format expects the duration to be specified in seconds. The `scale` transformation tool can be used if a conversion is required.

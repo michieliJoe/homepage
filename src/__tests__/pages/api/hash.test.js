@@ -7,9 +7,10 @@ function sha256(input) {
   return createHash("sha256").update(input).digest("hex");
 }
 
-const { readFileSync, checkAndCopyConfig, CONF_DIR } = vi.hoisted(() => ({
+const { readFileSync, checkAndCopyConfig, getTabConfigFiles, CONF_DIR } = vi.hoisted(() => ({
   readFileSync: vi.fn(),
   checkAndCopyConfig: vi.fn(),
+  getTabConfigFiles: vi.fn(() => []),
   CONF_DIR: "/conf",
 }));
 
@@ -24,11 +25,14 @@ vi.mock("utils/config/config", () => ({
 
 import handler from "pages/api/hash";
 
+vi.mock("utils/config/tabs", () => ({ getTabConfigFiles }));
+
 describe("pages/api/hash", () => {
   const originalBuildTime = process.env.HOMEPAGE_BUILDTIME;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    getTabConfigFiles.mockReturnValue([]);
     process.env.HOMEPAGE_BUILDTIME = originalBuildTime;
   });
 
@@ -60,5 +64,26 @@ describe("pages/api/hash", () => {
 
     expect(checkAndCopyConfig).toHaveBeenCalled();
     expect(res.body).toEqual({ hash: expected });
+  });
+
+  it("changes the hash when tab files are added, edited, or removed", async () => {
+    readFileSync.mockReturnValue("original");
+    const initial = createMockRes();
+    await handler({}, initial);
+
+    getTabConfigFiles.mockReturnValue(["/conf/tabs/slc/services.yaml"]);
+    const added = createMockRes();
+    await handler({}, added);
+    expect(added.body.hash).not.toBe(initial.body.hash);
+
+    readFileSync.mockImplementation((file) => (file.includes("/tabs/") ? "edited" : "original"));
+    const edited = createMockRes();
+    await handler({}, edited);
+    expect(edited.body.hash).not.toBe(added.body.hash);
+
+    getTabConfigFiles.mockReturnValue([]);
+    const removed = createMockRes();
+    await handler({}, removed);
+    expect(removed.body.hash).toBe(initial.body.hash);
   });
 });

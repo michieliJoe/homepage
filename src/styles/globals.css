@@ -2,6 +2,20 @@
 
 @config '../../tailwind.config.js';
 
+.tab-button {
+  cursor: pointer;
+}
+
+.tab-button[style] {
+  background: var(--tab-button-color) !important;
+  color: var(--tab-button-text) !important;
+}
+
+[data-card-color="true"] .service-card,
+[data-card-color="true"] .bookmark > a {
+  background: var(--tab-card-color) !important;
+}
+
 @theme {
   --breakpoint-3xl: 112rem;
 }

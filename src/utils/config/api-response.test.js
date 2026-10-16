@@ -33,6 +33,7 @@ vi.mock("fs", () => ({
 vi.mock("utils/config/yaml", () => ({ loadYaml: yaml.load }));
 
 vi.mock("utils/config/config", () => config);
+vi.mock("utils/config/tabs", () => ({ loadTabConfigs: vi.fn(() => []) }));
 vi.mock("utils/config/widget-helpers", () => widgetHelpers);
 vi.mock("utils/config/service-helpers", () => serviceHelpers);
 

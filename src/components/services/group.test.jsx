@@ -50,6 +50,45 @@ vi.mock("components/services/list", () => ({
 import ServicesGroup from "./group";
 
 describe("components/services/group", () => {
+  it("sets an inherited card color only when configured", () => {
+    const { container, rerender } = render(
+      <ServicesGroup group={{ name: "Sites", services: [], groups: [] }} layout={{ cardColor: "#e8f2ed" }} />,
+    );
+    expect(container.firstChild.style.getPropertyValue("--tab-card-color")).toBe("#e8f2ed");
+    expect(container.firstChild).toHaveAttribute("data-card-color", "true");
+    rerender(<ServicesGroup group={{ name: "Sites", services: [], groups: [] }} layout={{}} />);
+    expect(container.firstChild.style.getPropertyValue("--tab-card-color")).toBe("");
+    expect(container.firstChild).not.toHaveAttribute("data-card-color");
+  });
+  it("supports identical display names for independently identified groups", () => {
+    render(
+      <>
+        <ServicesGroup
+          group={{ name: "slc-environments", services: [], groups: [] }}
+          layout={{ tab: "SLC", displayName: "Environments" }}
+        />
+        <ServicesGroup
+          group={{ name: "meridian-environments", services: [], groups: [] }}
+          layout={{ tab: "Meridian", displayName: "Environments" }}
+        />
+      </>,
+    );
+    expect(screen.getAllByRole("heading", { name: "Environments" })).toHaveLength(2);
+    expect(screen.getByText("slc-environments:0")).toBeInTheDocument();
+    expect(screen.getByText("meridian-environments:0")).toBeInTheDocument();
+  });
+
+  it("displays a custom heading while retaining the group identifier", () => {
+    render(
+      <ServicesGroup
+        group={{ name: "slc-environments", services: [], groups: [] }}
+        layout={{ displayName: "Environments" }}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Environments" })).toBeInTheDocument();
+    expect(screen.getByTestId("services-list-mock")).toHaveTextContent("slc-environments:0");
+  });
+
   it("renders group and subgroup headers", () => {
     render(
       <ServicesGroup
